@@ -1,0 +1,3872 @@
+---
+openapi: 3.0.2
+info:
+  title: 🤤🍽👨‍🍳 CookinAt v1
+  version: 1.1.5
+  description: >- 
+    # 🤤🍽👨‍🍳 CookinAt
+
+    Is a platform connecting diners with cooks.
+    Upcoming versions may also include similar services such as waiters, catering, cocktails, etc.
+
+    ## 🎉 Welcome to CookinAt API 🎆
+
+    We offer REST endpoints and a GraphQL endpoint so you can run queries. 
+    If you are looking for the GraphQL endpoint please visit [the playground](https://www.cookinat.com/graphql).
+
+    ### General User Operations
+
+    * SignUp in App: A user must enter the info needed to create an user. 
+        + [Cook](#/Auth/postAuthSignupCook): More info regardless cooking is needed
+        + [Diner](#/Auth/postAuthSignupDiner): General info needed, confidential data is not shared nor selled to 3rd parties.
+
+    * [LogIn with the user you created in SignUp step](#/Auth/postAuthLogin) Provide `email` and `password` in order to get an `user_id` and `token` for later requests. 
+    
+    * [Send a petition to reset Password](#/Auth/getAuthLoginForgot) If the user is unable to enter her/his credentials, an option is shown so the password can be updated. 
+    
+    * [Verify that you own the email given](#/Auth/postAuthSignupVerification) After the user signup, she/he must enter a code sent to her/his email to activate user.
+
+    ## 🔑 JWT and Access Keys 🔐
+
+    All the APIs are ready to accept normal user and admins/other devs. To normal  users we provide the JWT mechanism, intended to be used in CookinAt App. But special *access keys* are provided for different needs, with different levels of authority. Please note that brute force attacks on access keys with result in insta-banning.
+
+    ## Planned Services
+
+    * Waiters & Waitress 
+
+    * Bartenders & Cocktails 
+
+    * Wine Catering 
+
+    * General Catering 
+    
+    * Split total between diners
+
+    ## Available APIs
+
+    * [😠 CLAIM](#/Claim)
+
+    * [🍛 DISH](#/Dish)
+
+    * [💸 PAYMENT](#/Payment)
+
+    * [📋 RESERVATION](#/Reservation)
+
+    * [⭐⭐⭐ REVIEW](#/Review)
+servers:
+- url: https://www.cookinat.com/api/v1
+- url: http://{host}/{prefix}
+  description: ""
+  variables:
+    host:
+      default: localhost:8080
+    prefix:
+      default: api/v1
+paths:
+    /auth/login:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/credentials'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/credentials'
+            tags:
+                - Auth
+                - Cook
+                - Diner
+                - User
+            responses:
+                '200':
+                    $ref: '#/components/responses/login_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: postAuthLogin
+            summary: Get your Token
+            description: |-
+                Validate your user credentials to enter CookinAt' app
+
+                Given email and password, create and return jwt token and DB id
+    /auth/signup/diner:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/diner_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/diner_request'
+            tags:
+                - Auth
+                - Diner
+                - User
+            responses:
+                '200':
+                    $ref: '#/components/responses/diner_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: postAuthSignupDiner
+            summary: Sign Up as a new Diner
+    /auth/signup/cook:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/cook_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/cook_request'
+            tags:
+                - Auth
+                - Cook
+                - User
+            responses:
+                '200':
+                    $ref: '#/components/responses/cook_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: postAuthSignupCook
+            summary: Sign Up as a new Cook
+    /admin/all:
+        summary: Admins are High Order Users
+        description: |-
+            Admins stand for Owners, Bosses and employees with especial privileges. 
+
+            Admins are in a higher rank that Staff. The biggest difference 
+            is the capabilitie of create new resources.
+        get:
+            tags:
+                - Admin
+            responses:
+                '200':
+                    $ref: '#/components/responses/admin_success'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: getAdminAll
+            summary: Read all Admins
+            description: Note that you wont get passwords or payment information
+        parameters:
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /admin/claim:
+        summary: Control Claims
+        description: |-
+            As a services company, the food serving one must be really sure that 
+            the client is always happy.
+
+            The claim mechanism allow cooks and admins to found weak points in the 
+            service in order to fix them. We hope this endpoints help cooks and admins. 
+        post:
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/claim_request'
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/claim_request'
+            tags:
+                - Admin
+                - Claim
+            responses:
+                '200':
+                    $ref: '#/components/responses/claim_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '401':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: postAdminClaim
+            summary: Create a Claim
+            description: 'Given all the info neeeded, create and make available a new claim for users'
+        parameters:
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /admin/cook:
+        summary: Control Cooks
+        description: 'Cooks are one of the pilars of CookinAt. '
+        patch:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/admin_cook_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin_cook_request'
+            tags:
+                - Admin
+                - Cook
+                - User
+            responses:
+                '200':
+                    $ref: '#/components/responses/cook_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: patchAdminCook
+            summary: Update Cook
+            description: Change info
+        parameters:
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /admin/cook/verify:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/cook_verify_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/cook_verify_request'
+            tags:
+                - Admin
+                - User
+                - Cook
+            responses:
+                '200':
+                    $ref: '#/components/responses/cook_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: getAdminCookVerify
+            summary: Verify SSN and Certification info
+            description: |-
+                When a new cook is registered, this cook send SSN and certification photo. 
+                You as an Admin must verify the information sent and approve the information
+                sent to your email.
+        parameters:
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /admin/diner:
+        patch:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/admin_diner_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin_diner_request'
+            tags:
+                - Admin
+                - Diner
+                - User
+            responses:
+                '202':
+                    $ref: '#/components/responses/diner_success'
+                '400':
+                    $ref: '#/components/responses/diner_success'
+                '401':
+                    $ref: '#/components/responses/diner_success'
+                '500':
+                    $ref: '#/components/responses/diner_success'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: patchAdminDiner
+            summary: Update  Diner
+            description: Change Diner Info
+        parameters:
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /admin/review:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/review_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/review_request'
+            tags:
+                - Admin
+                - Review
+            responses:
+                '201':
+                    $ref: '#/components/responses/review_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: postAdminReview
+            summary: Create a new Review
+            description: |-
+                A review must be created only by diners, but there can be some cases when an
+                admin can create a review.
+        parameters:
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /consumer/cook/all:
+        get:
+            tags:
+                - Cook
+            responses:
+                '200':
+                    $ref: '#/components/responses/cook_success'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getConsumerCookAll
+            summary: Read all Cooks
+            description: 'Return a list with all cook not locked: {userId, firstName, lastName, avatar, innerReview}'
+    '/consumer/review/reservation/{reservation_id}':
+        get:
+            tags:
+                - Review
+                - Reservation
+            responses:
+                '200':
+                    $ref: '#/components/responses/review_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getConsumerReviewReservation
+            summary: Read Reviews by Reservation
+            description: Return an array with all reviewes created by certain cook
+        parameters:
+            -
+                name: reservation_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+    /ping:
+        summary: Server heartbeat operation
+        description: |-
+            This operation shows current *status* of server.
+
+            If `200` then all ok, if `500` a problem is there.
+
+            __Dev Oriented Endpoint__
+        get:
+            servers:
+                -
+                    url: 'https://www.cookinat.com'
+                    description: ''
+            tags:
+                - System64
+            responses:
+                '200':
+                    $ref: '#/components/responses/ping_response'
+            operationId: getPing
+            summary: Find if Server is Alive
+    /upload:
+        summary: Upload Image to Cloudinary
+        description: |-
+            YOU MUST UPLOAD IMAGE AS FILE IN BASE64!!!
+
+            In Android RN take this as example: 
+            (https://snowball.digital/Blog/Uploading-Images-in-React-Native)
+            ```javascript
+            takePicture() {
+              this.camera.capture().then(data => {
+                console.log(data);
+                PicturePath = data.path;
+              }).catch(err => console.error(err));
+            }
+            ```
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/upload_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/upload_request'
+            servers:
+                -
+                    url: 'https://www.cookinat.com'
+                    description: ''
+            tags:
+                - System64
+            responses:
+                '200':
+                    $ref: '#/components/responses/upload_response'
+            operationId: postUpload
+            summary: Create a new Image URL from a path
+            description: |-
+                To upload programmatically an image. 
+
+                Another alternative is using [Widget](https://cloudinary.com/documentation/upload_widget)
+    /auth/signup/verify:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/verification_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/verification_request'
+            tags:
+                - Auth
+                - Diner
+                - User
+            responses:
+                '200':
+                    $ref: '#/components/responses/user_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: postAuthSignupVerification
+            summary: Verify your Account
+    '/auth/signup/verify/resend/{email}':
+        get:
+            tags:
+                - Auth
+                - Diner
+                - User
+            responses:
+                '200':
+                    $ref: '#/components/responses/user_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getAuthSignupVerificationResend
+            summary: Request to Resend Verification Code
+        parameters:
+            -
+                name: email
+                schema:
+                    type: string
+                in: path
+                required: true
+    /admin/staff:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/staff_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/staff_request'
+            tags:
+                - Staff
+                - Admin
+            parameters:
+                -
+                    name: cookinat-api-key
+                    description: ''
+                    schema:
+                        type: string
+                    in: header
+            responses:
+                '201':
+                    $ref: '#/components/responses/staff_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: postAdminStaff
+            summary: Create a New Staff member
+            description: Create a New Staff member
+        patch:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/staff_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/staff_request'
+            tags:
+                - Admin
+                - Staff
+            parameters:
+                -
+                    name: cookinat-api-key
+                    description: ''
+                    schema:
+                        type: string
+                    in: header
+                    required: true
+            responses:
+                '202':
+                    $ref: '#/components/responses/staff_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: patchAdminStaff
+            summary: Update a Staff Member
+            description: Change the resource
+    '/consumer/review/dish/{dish_id}':
+        get:
+            tags:
+                - Review
+                - Dish
+            responses:
+                '200':
+                    $ref: '#/components/responses/review_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getConsumerReviewDish
+            summary: Read Reviews by Dish
+        parameters:
+            -
+                name: dish_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+    '/consumer/review/cook/{user_id}':
+        get:
+            tags:
+                - Review
+                - Cook
+            responses:
+                '200':
+                    $ref: '#/components/responses/review_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getConsumerReviewCook
+            summary: Read Reviews by Cook
+        parameters:
+            -
+                name: user_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+    '/consumer/reservation/{reservation_id}':
+        get:
+            tags:
+                - Reservation
+            responses:
+                '200':
+                    $ref: '#/components/responses/reservation_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getConsumerReservation
+            summary: Read Reservation by Id
+            description: Given the reservationId obtain info needed
+        parameters:
+            -
+                name: reservation_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+    '/consumer/payment/{payment_id}':
+        get:
+            tags:
+                - Payment
+            responses:
+                '200':
+                    $ref: '#/components/responses/payment_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getConsumerPayment
+            summary: Read Payment by Id
+            description: Given the paymentId obtain info needed
+        parameters:
+            -
+                name: payment_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+    /consumer/dish/all:
+        get:
+            tags:
+                - Dish
+            responses:
+                '200':
+                    $ref: '#/components/responses/dish_success'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getConsumerDishAll
+            summary: Read All Dishes
+            description: User and Admin must be capable of get all dishes
+    '/consumer/claim/{claim_id}':
+        get:
+            tags:
+                - Claim
+            responses:
+                '200':
+                    $ref: '#/components/responses/claim_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getConsumerClaim
+            summary: Read a Claim by Id
+            description: Given the claimId obtain info needed
+        parameters:
+            -
+                name: claim_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+    '/auth/login/forgot/{email}':
+        get:
+            tags:
+                - Auth
+                - Diner
+                - Cook
+                - User
+            responses:
+                '200':
+                    $ref: '#/components/responses/user_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: getAuthLoginForgot
+            summary: Request a new Password
+        parameters:
+            -
+                name: email
+                schema:
+                    type: string
+                in: path
+                required: true
+    '/admin/claim/{claim_id}':
+        summary: Specific of certain Claim
+        description: |-
+            As a services company, the food serving one must be really sure that 
+            the client is always happy.
+
+            The claim mechanism allow cooks and admins to found weak points in the 
+            service in order to fix them. We hope this endpoints help cooks and admins. 
+        get:
+            tags:
+                - Admin
+                - Claim
+            responses:
+                '200':
+                    $ref: '#/components/responses/claim_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: getAdminClaim
+            summary: Read Certain Claim
+            description: Given the claimId obtain info needed
+        patch:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/claim_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/claim_request'
+            tags:
+                - Admin
+                - Claim
+            responses:
+                '200':
+                    $ref: '#/components/responses/claim_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '401':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: patchAdminClaim
+            summary: Update a Claim
+            description: 'Given a claimId, change the filelds in claim DB'
+        parameters:
+            -
+                name: claim_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    '/admin/review/{review_id}':
+        get:
+            tags:
+                - Admin
+                - Review
+            responses:
+                '200':
+                    $ref: '#/components/responses/review_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: getAdminReview
+            summary: Read a Review by Id
+            description: Given the reviewId obtain info needed
+        patch:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/review_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/review_request'
+            tags:
+                - Admin
+                - Review
+            responses:
+                '200':
+                    $ref: '#/components/responses/review_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: patchAdminReview
+            summary: Update a Review
+            description: 'Given a reviewId, change the filelds in review DB'
+        parameters:
+            -
+                name: review_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    '/admin/reservation/{reservation_id}':
+        get:
+            tags:
+                - Admin
+                - Reservation
+            responses:
+                '200':
+                    $ref: '#/components/responses/reservation_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-admin-credentials: []
+                    cookinat-api-key: []
+            operationId: getAdminReservation
+            description: Given the reservationId obtain info needed
+        parameters:
+            -
+                name: reservation_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /admin/reservation:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/reservation_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/reservation_request'
+            tags:
+                - Admin
+                - Reservation
+            responses:
+                '201':
+                    $ref: '#/components/responses/reservation_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: postAdminReservation
+            description: 'Given all the info needed, create and make available a new reservation for users'
+        patch:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/reservation_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/reservation_request'
+            tags:
+                - Admin
+                - Reservation
+            responses:
+                '202':
+                    $ref: '#/components/responses/reservation_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: patchAdminReservation
+        parameters:
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    '/admin/payment/{payment_id}':
+        get:
+            tags:
+                - Admin
+                - Payment
+            responses:
+                '200':
+                    $ref: '#/components/responses/payment_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: getAdminPayment
+            description: Given the paymentId obtain info needed
+        parameters:
+            -
+                name: payment_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /admin/payment:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/payment_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/payment_request'
+            tags:
+                - Admin
+                - Payment
+            responses:
+                '201':
+                    $ref: '#/components/responses/payment_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: postAdminPayment
+            description: 'Given all the info neeeded, create and make available a new payment for users'
+        parameters:
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /admin/me:
+        summary: Get info about some Admin user
+        description: >-
+            We can not give an endpoint that creates admins but we can give basic info about admins, like
+            contact info or general status.
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/credentials'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/credentials'
+            tags:
+                - Admin
+            responses:
+                '200':
+                    $ref: '#/components/responses/admin_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: postAdminMe
+            summary: An Admin request her/his information
+            description: Request info about your own information. The password is not retrieved. Api Key is Given Here.
+    '/admin/dish/{dish_id}':
+        get:
+            tags:
+                - Admin
+                - Dish
+            responses:
+                '200':
+                    $ref: '#/components/responses/dish_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: getAdminDish
+            description: Given the dishId obtain info needed
+        parameters:
+            -
+                name: dish_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /admin/dish:
+        post:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/dish_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/dish_request'
+            tags:
+                - Admin
+                - Dish
+            responses:
+                '201':
+                    $ref: '#/components/responses/dish_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: postAdminDish
+            description: 'Given all the info neeeded, create and make available a new dish for users'
+        patch:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/dish_request'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/dish_request'
+            tags:
+                - Admin
+                - Dish
+            responses:
+                '202':
+                    $ref: '#/components/responses/dish_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: patchAdminDish
+            description: 'Given a dishId, change the filelds in Dish DB'
+        parameters:
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    '/admin/diner/{user_id}':
+        get:
+            tags:
+                - Admin
+                - User
+                - Diner
+            responses:
+                '200':
+                    $ref: '#/components/responses/diner_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: getAdminDiner
+        parameters:
+            -
+                name: user_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    '/admin/cook/{user_id}':
+        get:
+            tags:
+                - Admin
+                - User
+                - Cook
+            responses:
+                '200':
+                    $ref: '#/components/responses/cook_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: getAdminCook
+        parameters:
+            -
+                name: user_id
+                schema:
+                    format: int32
+                    type: integer
+                in: path
+                required: true
+            -
+                name: cookinat-api-key
+                description: Secret Key for Special Access
+                schema:
+                    format: byte
+                    type: string
+                in: header
+                required: true
+    /user/password:
+        patch:
+            requestBody:
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            $ref: '#/components/schemas/credentials'
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/credentials'
+            tags:
+                - User
+            responses:
+                '202':
+                    $ref: '#/components/responses/user_success'
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '401':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            operationId: patchUserPassword
+            summary: Update Password
+    '/admin/cook/verify/{checkr_id}':
+        get:
+            tags:
+                - Admin
+                - Cook
+            parameters:
+                -
+                    name: checkr_id
+                    schema:
+                      type: string
+                    in: path
+                    required: true
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                type: string
+                            examples:
+                                Test subject:
+                                    value:
+                                        id: a13f4827d8711ddc75abc56ct
+                                        object: report
+                                        uri: /v1/reports/a13f4827d8711ddc75abc56ct
+                                        status: clear
+                                        created_at: '2018-08-17T01:10:21Z'
+                                        completed_at: '2018-08-17T01:12:26Z'
+                                        turnaround_time: 52
+                                        due_time: '2018-08-17T01:12:26Z'
+                                        package: dunder_mifflin_executive
+                                        tags: []
+                                        source: api
+                                        candidate_id: 551564b7865af96a28b13f36
+                                        county_criminal_search_ids: []
+                                        municipal_criminal_search_ids: []
+                                        document_ids: []
+                                        federal_criminal_search_id: 5b64c62b67abb4002d3ec763
+                                        global_watchlist_search_id: 5b64c5cf67abb400353ec6f7
+                                        national_criminal_search_id: 5b64c5cf67abb400353ec6f5
+                                        personal_reference_verification_ids: []
+                                        professional_reference_verification_ids: []
+                                        sex_offender_search_id: 5b64c5cf67abb400353ec6f6
+                                        ssn_trace_id: 5b64c5cf67abb400353ec6f3
+                                        state_criminal_search_ids: []
+                                        terrorist_watchlist_search_id: 5b64c5cf67abb400353ec6f7
+                                        self_disclosure_ids: []
+                    description: Checkr gives an object with the info
+                '400':
+                    $ref: '#/components/responses/user_error'
+                '500':
+                    $ref: '#/components/responses/server_error'
+            security:
+                -
+                    cookinat-api-key: []
+                    cookinat-admin-credentials: []
+            operationId: getCookVerify
+            summary: Consult Checkr Report
+            description: Check if Checkr have a report for the checkr_id provided
+components:
+    schemas:
+        staff_request:
+            title: Root Type for staff
+            description: ''
+            required:
+                - role
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                phone_number:
+                    type: string
+                avatar:
+                    type: string
+                other:
+                    type: string
+                role:
+                    description: ''
+                    enum:
+                        - ACCOUNT
+                        - CREW
+                        - MARKETING
+                        - METRICS
+                    type: string
+            example:
+                staff_id: 61646
+                email: ''
+                password: ''
+                first_name: ''
+                last_name: ''
+                phone_number: ''
+                avatar: ''
+                created_at: ''
+                updated_at: ''
+                other: ''
+        credentials:
+            title: Root Type for credentials
+            description: ''
+            required:
+                - email
+                - password
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+            example:
+                email: ''
+                password: ''
+        user_request:
+            title: Root Type for user_response
+            description: ''
+            required:
+                - email
+                - role
+            type: object
+            properties:
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                email:
+                    type: string
+                phone_number:
+                    type: string
+                nickname:
+                    type: string
+                avatar:
+                    type: string
+                ssn:
+                    type: string
+                certification_photo:
+                    type: string
+                instagram:
+                    type: string
+                bio:
+                    type: string
+                video:
+                    type: string
+                monday:
+                    type: string
+                tuesday:
+                    type: string
+                wednesday:
+                    type: string
+                thursday:
+                    type: string
+                friday:
+                    type: string
+                saturday:
+                    type: string
+                sunday:
+                    type: string
+                work_holidays:
+                    type: boolean
+                push:
+                    type: boolean
+                email_notification:
+                    type: boolean
+                sms_notification:
+                    type: boolean
+                updates_notification:
+                    type: boolean
+                promotionals_notification:
+                    type: boolean
+                other:
+                    type: string
+                role:
+                    enum:
+                        - COOK
+                        - DINER
+                        - CONSUMER
+                    type: string
+                password:
+                    description: ''
+                    type: string
+            example:
+                role: DINER
+                first_name: ''
+                last_name: ''
+                email: ''
+                password: ''
+                phone_number: ''
+                nickname: ''
+                avatar: ''
+                ssn: ''
+                certification_photo: ''
+                instagram: ''
+                bio: ''
+                video: ''
+                monday: ''
+                tuesday: ''
+                wednesday: ''
+                thursday: ''
+                friday: ''
+                saturday: ''
+                sunday: ''
+                work_holidays: false
+                push: true
+                email_notification: true
+                sms_notification: true
+                updates_notification: true
+                promotionals_notification: true
+                other: ''
+        reservation_request:
+            title: Root Type for reservation_response
+            description: ''
+            type: object
+            properties:
+                diner_id:
+                    type: integer
+                cook_id:
+                    type: integer
+                guests:
+                    type: array
+                    items:
+                        type: string
+                dishes:
+                    type: array
+                    items:
+                        type: integer
+                client_order:
+                    type: string
+                cook_comment:
+                    type: string
+                priority:
+                    type: integer
+                comment:
+                    type: string
+                place:
+                    type: string
+                when:
+                    type: string
+                status:
+                    enum:
+                        - PROPOSED
+                        - APPROVED
+                        - DECLINED
+                        - ONGOING
+                        - CANCELLED
+                        - PENDING
+                        - COOK
+                        - READY
+                        - MODIFIED
+                        - CLOSED
+                    type: string
+                staff_id:
+                    type: integer
+            example:
+                diner_id: 96461
+                cook_id: 31313
+                guests:
+                    - ''
+                dishes:
+                    - 14313
+                client_order: ''
+                cook_comment: ''
+                priority: 3
+                comment: ''
+                place: ''
+                when: ''
+                status: PROPOSED
+                staff_id: 6611
+        claim_chat_request:
+            title: Root Type for claim_chat_response
+            description: ''
+            type: object
+            properties:
+                diner_id:
+                    type: integer
+                cook_id:
+                    type: integer
+                reservation_id:
+                    type: integer
+                messages:
+                    type: array
+                    items:
+                        type: string
+            example:
+                diner_id: 684161
+                cook_id: 7641
+                reservation_id: 6416
+                messages:
+                    - ''
+        payment_request:
+            title: Root Type for payment_response
+            description: ''
+            type: object
+            properties:
+                receiver:
+                    type: integer
+                buyer:
+                    type: integer
+                comment:
+                    type: string
+                concept:
+                    type: string
+                register:
+                    type: integer
+                pay_method:
+                    enum:
+                        - CASH
+                        - CARD
+                        - BANK
+                        - APPLE_PAY
+                        - GOOGLE_PAY
+                        - OTHER
+                    type: string
+                pay_status:
+                    enum:
+                        - ISSUED
+                        - PROCESSING
+                        - PROCESSED
+                        - REVISION
+                        - CANCELLED
+                    type: string
+                other:
+                    type: string
+            example:
+                payment_id: 641613
+                receiver: 463134
+                buyer: 131351
+                comment: ''
+                concept: ''
+                register: 31313
+                pay_method: CASH
+                pay_status: REVISION
+                other: ''
+        dish_request:
+            title: Root Type for dish_response
+            description: ''
+            type: object
+            properties:
+                cook_id:
+                    type: integer
+                title:
+                    type: string
+                description:
+                    type: string
+                style:
+                    type: string
+                glutten_allergy:
+                    type: boolean
+                soy_allergy:
+                    type: boolean
+                milk_allergy:
+                    type: boolean
+                peanuts_allergy:
+                    type: boolean
+                shrimp_allergy:
+                    type: boolean
+                other_allergy:
+                    description: Each allergy separated by commas.
+                    type: string
+                attachment:
+                    description: URLs to pfotos that shows the dish greatness and gorgeous look
+                    type: array
+                    items:
+                        type: string
+                minimun_diners:
+                    type: integer
+                maximum_diners:
+                    type: integer
+                price:
+                    description: |-
+                        It will be in the form 0000, where the last 2 digits are the cents. 
+                        For example 1000 is equal to $10.00
+                    type: integer
+                minimum_cancel_time:
+                    type: string
+                required_tools:
+                    type: string
+                other:
+                    type: string
+            example:
+                cook_id: 6113
+                title: ''
+                description: ''
+                style: ''
+                glutten_allergy: false
+                soy_allergy: false
+                milk_allergy: false
+                peanuts_allergy: false
+                shrimp_allergy: false
+                other_allergy: ''
+                attachment:
+                    - ''
+                minimun_diners: 1
+                maximum_diners: 2
+                price: 10000
+                minimum_cancel_time: ''
+                required_tools: ''
+                other: ''
+        review_request:
+            title: Root Type for review_response
+            description: ''
+            type: object
+            properties:
+                user_id:
+                    type: integer
+                reservation_id:
+                    type: integer
+                food:
+                    type: string
+                service:
+                    type: string
+                presentation:
+                    type: string
+                overall_experience:
+                    type: string
+                comment:
+                    type: string
+                attachment:
+                    type: array
+                    items:
+                        type: string
+                service_went_fully:
+                    type: boolean
+                review_text:
+                    type: string
+                other:
+                    type: string
+            example:
+                user_id: 64313
+                reservation_id: 6431
+                food: '1'
+                service: '1'
+                presentation: '1'
+                overall_experience: '1'
+                comment: ''
+                attachment:
+                    - ''
+                service_went_fully: true
+                review_text: ''
+                other: ''
+        claim_chat_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                sucess:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/claim_chat_response'
+            example:
+                sucess: true
+                msg: string
+                data:
+                    -
+                        claim_id: 6464
+                        diner_id: 31313
+                        reservation_id: 94313
+                        subject: ''
+                        issue: ''
+                        attachment:
+                            - ''
+                        other: ''
+        admin_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                sucess:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin_response'
+            example:
+                sucess: true
+                msg: string
+                data:
+                    -
+                        admin_id: 5464
+                        cookinat-api-key: ''
+                        email: ''
+                        first_name: ''
+                        last_name: ''
+                        phone_number: ''
+                        avatar: ''
+                        created_at: ''
+                        updated_at: ''
+                        other: ''
+        claim_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                sucess:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/claim_response'
+            example:
+                sucess: true
+                msg: string
+                data:
+                    -
+                        claim_id: 6464
+                        diner_id: 31313
+                        reservation_id: 94313
+                        subject: ''
+                        issue: ''
+                        attachment:
+                            - ''
+                        status: PENDING
+                        claim_chat_id: 6431
+                        created_at: ''
+                        updated_at: ''
+                        other: ''
+        dish_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                sucess:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/dish_response'
+            example:
+                sucess: true
+                msg: string
+                data:
+                    -
+                        dish_id: 646341
+                        cook_id: 6113
+                        title: ''
+                        description: ''
+                        style: ''
+                        glutten_allergy: false
+                        soy_allergy: false
+                        milk_allergy: false
+                        peanuts_allergy: false
+                        shrimp_allergy: false
+                        other_allergy: ''
+                        attachment:
+                            - ''
+                        minimun_diners: 1
+                        maximum_diners: 2
+                        price: 10000
+                        minimum_cancel_time: ''
+                        required_tools: ''
+                        disabled: false
+                        reasons: ''
+                        review: '2'
+                        created_at: ''
+                        updated_at: ''
+                        other: ''
+        payment_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                sucess:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        type: string
+            example:
+                sucess: true
+                msg: string
+                data:
+                    -
+                        payment_id: 641613
+                        receiver: 463134
+                        buyer: 131351
+                        comment: ''
+                        concept: ''
+                        register: 31313
+                        pay_method: CASH
+                        pay_status: REVISION
+                        other: ''
+        reservation_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                sucess:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/reservation_response'
+            example:
+                sucess: true
+                msg: string
+                data:
+                    -
+                        reservation_id: 635416
+                        diner_id: 96461
+                        cook_id: 31313
+                        guests:
+                            - ''
+                        dishes:
+                            - 14313
+                        client_order: ''
+                        cook_comment: ''
+                        priority: 3
+                        comment: ''
+                        place: ''
+                        when: ''
+                        status: PROPOSED
+                        staff_id: 6611
+                        created_at: ''
+                        updated_at: ''
+        review_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                sucess:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/review_response'
+            example:
+                sucess: true
+                msg: string
+                data:
+                    -
+                        review_id: 6431
+                        user_id: 64313
+                        reservation_id: 6431
+                        food: '1'
+                        service: '1'
+                        presentation: '1'
+                        overall_experience: '1'
+                        comment: ''
+                        attachment: ''
+                        service_went_fully: true
+                        review_text: ''
+                        disabled: false
+                        reasons: ''
+                        created_at: ''
+                        updated_at: ''
+                        other: ''
+        staff_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                sucess:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/review_response'
+            example:
+                sucess: true
+                msg: string
+                data:
+                    -
+                        staff_id: 61646
+                        email: ''
+                        password: ''
+                        first_name: ''
+                        last_name: ''
+                        phone_number: ''
+                        avatar: ''
+                        created_at: ''
+                        updated_at: ''
+                        other: ''
+        user_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                sucess:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/user_response'
+            example:
+                sucess: true
+                msg: string
+                data:
+                    -
+                        user_id: ''
+                        first_name: ''
+                        last_name: ''
+                        email: ''
+                        phone_number: ''
+                        nickname: ''
+                        avatar: ''
+                        is_diner_locked: true
+                        is_cook_locked: true
+                        ssn: ''
+                        certification_photo: ''
+                        instagram: ''
+                        bio: ''
+                        video: ''
+                        monday: ''
+                        tuesday: ''
+                        wednesday: ''
+                        thursday: ''
+                        friday: ''
+                        saturday: ''
+                        sunday: ''
+                        work_holidays: false
+                        push: true
+                        email_notification: true
+                        sms_notification: true
+                        updates_notification: true
+                        promotionals_notification: true
+                        created_at: ''
+                        updated_at: ''
+                        other: ''
+        diner_request:
+            title: Root Type for diner_response
+            description: ''
+            required:
+                - password
+                - email
+            type: object
+            properties:
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                email:
+                    type: string
+                phone_number:
+                    type: string
+                nickname:
+                    type: string
+                avatar:
+                    description: URL to the Avatar Image
+                    type: string
+                push:
+                    type: boolean
+                email_notification:
+                    type: boolean
+                sms_notification:
+                    type: boolean
+                updates_notification:
+                    type: boolean
+                promotionals_notification:
+                    description: 'Do you want to receive promotions, deals and offers?'
+                    type: boolean
+                password:
+                    description: ''
+                    type: string
+            example:
+                first_name: ''
+                last_name: ''
+                email: ''
+                password: ''
+                phone_number: ''
+                nickname: ''
+                avatar: ''
+                push: true
+                email_notification: true
+                sms_notification: true
+                updates_notification: true
+                promotionals_notification: true
+        diner_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                success:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    description: ''
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/diner_response'
+            example:
+                success: true
+                msg: Operation Succeded
+                data:
+                    -
+                        user_id: 65131
+                        first_name: ''
+                        last_name: ''
+                        email: ''
+                        phone_number: ''
+                        is_diner_locked: false
+                        nickname: ''
+                        avatar: ''
+                        push: true
+                        email_notification: true
+                        sms_notification: true
+                        updates_notification: true
+                        promotionals_notification: true
+                        created_at: ''
+                        updated_at: ''
+        cook_success:
+            title: Root Type for success
+            description: ''
+            type: object
+            properties:
+                success:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    description: ''
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/cook_response'
+            example:
+                success: true
+                msg: Operation Succeded
+                data:
+                    -
+                        user_id: 6131
+                        first_name: ''
+                        last_name: ''
+                        email: ''
+                        phone_number: ''
+                        is_cook_locked: true
+                        certification_photo: ''
+                        instagram: ''
+                        bio: ''
+                        video: ''
+                        monday: ''
+                        tuesday: ''
+                        wednesday: ''
+                        thursday: ''
+                        friday: ''
+                        saturday: ''
+                        sunday: ''
+                        work_holidays: false
+                        nickname: ''
+                        avatar: ''
+                        push: true
+                        email_notification: true
+                        sms_notification: true
+                        updates_notification: true
+                        created_at: ''
+                        updated_at: ''
+        login_response:
+            title: Root Type for login_response
+            description: ''
+            type: object
+            properties:
+                success:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/login_response_data'
+            example:
+                success: true
+                msg: You have successfully Log In to CookinAt!
+                data:
+                    -
+                        user_id: 64631
+                        first_name: ''
+                        email: ''
+                        avatar: ''
+                        nickname: ''
+                        token: ''
+                        expires: ''
+        server_failed:
+            title: Root Type for failed
+            description: ''
+            type: object
+            properties:
+                success:
+                    type: boolean
+                msg:
+                    type: string
+                error:
+                    description: >-
+                        reference to the aspect of the service. Acts like a title describing what portion of
+                        the service can be improved later. We plan to make it a enum later.
+                    type: array
+                    items:
+                        type: string
+            example:
+                success: false
+                msg: An Internal Server Error found. Please try again or contact Support.
+                error:
+                    - ''
+        client_failed:
+            title: Root Type for failed
+            description: ''
+            type: object
+            properties:
+                success:
+                    type: boolean
+                msg:
+                    type: string
+                error:
+                    description: 'If more than an error is found, it will be on his own object.'
+                    type: array
+                    items:
+                        type: string
+            example:
+                success: false
+                msg: 'Please check the data you''ve sent, and try again.'
+                error:
+                    - ''
+        verification_request:
+            title: Root Type for varification_request
+            description: ''
+            type: object
+            properties:
+                verificationCode:
+                    type: string
+                email:
+                    type: string
+            example:
+                verificationCode: ''
+                email: ''
+        ping_response:
+            title: Root Type for ping_response
+            description: ''
+            type: object
+            properties:
+                success:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            name:
+                                type: string
+                            description:
+                                type: string
+                            version:
+                                type: string
+                            uptime:
+                                format: double
+                                type: number
+            example:
+                success: true
+                msg: A savage Server is challenge you to a fight!
+                data:
+                    -
+                        name: cookinat-user-backend
+                        description: RESTful API with Authentication and documentation
+                        version: 2.0.1
+                        uptime: 48715.379753035
+        upload_request:
+            title: Root Type for upload_request
+            description: ''
+            type: object
+            properties:
+                image_name:
+                    type: string
+                user_id:
+                    type: integer
+            example:
+                image_name: My cat Tommy
+                user_id: 61313
+        cook_request:
+            title: Root Type for cook_response
+            description: ''
+            required:
+                - ssn
+                - email
+                - password
+                - certification_photo
+                - first_name
+                - last_name
+            type: object
+            properties:
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                email:
+                    type: string
+                phone_number:
+                    type: string
+                certification_photo:
+                    description: >-
+                        Certification to be verified. Refer to
+                        https://www.acfchefs.org/ACF/Certify/ACF/Certify/
+                    type: string
+                instagram:
+                    description: URL to your Instagram profile.
+                    type: string
+                bio:
+                    description: Bragging and swag section here
+                    type: string
+                video:
+                    description: URL to a video in Youtube or Vimeo
+                    type: string
+                monday:
+                    description: |-
+                        Your Schedule for this day. Remember to take in consideration readability. 
+                        We recomend something like: From 2:00 pm to 6:00 pm and from 8:30 pm 10:00 pm 
+                    type: string
+                tuesday:
+                    description: |-
+                        Your Schedule for this day. Remember to take in consideration readability. 
+                        We recomend something like: From 2:00 pm to 6:00 pm and from 8:30 pm 10:00 pm 
+                    type: string
+                wednesday:
+                    description: |-
+                        Your Schedule for this day. Remember to take in consideration readability. 
+                        We recomend something like: From 2:00 pm to 6:00 pm and from 8:30 pm 10:00 pm 
+                    type: string
+                thursday:
+                    description: |-
+                        Your Schedule for this day. Remember to take in consideration readability. 
+                        We recomend something like: From 2:00 pm to 6:00 pm and from 8:30 pm 10:00 pm 
+                    type: string
+                friday:
+                    description: |-
+                        Your Schedule for this day. Remember to take in consideration readability. 
+                        We recomend something like: From 2:00 pm to 6:00 pm and from 8:30 pm 10:00 pm 
+                    type: string
+                saturday:
+                    description: |-
+                        Your Schedule for this day. Remember to take in consideration readability. 
+                        We recomend something like: From 2:00 pm to 6:00 pm and from 8:30 pm 10:00 pm 
+                    type: string
+                sunday:
+                    description: |-
+                        Your Schedule for this day. Remember to take in consideration readability. 
+                        We recomend something like: From 2:00 pm to 6:00 pm and from 8:30 pm 10:00 pm 
+                    type: string
+                work_holidays:
+                    description: Are you available on holidays?
+                    type: boolean
+                nickname:
+                    type: string
+                avatar:
+                    description: URL to the Avatar Image
+                    type: string
+                push:
+                    description: Would you like to receive Push notifications on your device?
+                    type: boolean
+                email_notification:
+                    type: boolean
+                sms_notification:
+                    type: boolean
+                updates_notification:
+                    type: boolean
+                ssn:
+                    description: Number of 10 digits to validate cook Social Security Number.
+                    type: string
+                password:
+                    description: ''
+                    type: string
+            example:
+                first_name: ''
+                last_name: ''
+                email: ''
+                password: ''
+                phone_number: ''
+                certification_photo: ''
+                instagram: ''
+                ssn: ''
+                bio: ''
+                video: ''
+                monday: ''
+                tuesday: ''
+                wednesday: ''
+                thursday: ''
+                friday: ''
+                saturday: ''
+                sunday: ''
+                work_holidays: false
+                nickname: ''
+                avatar: ''
+                push: true
+                email_notification: true
+                sms_notification: true
+                updates_notification: true
+        claim_request:
+            title: Root Type for claim_response
+            description: ''
+            type: object
+            properties:
+                diner_id:
+                    type: integer
+                reservation_id:
+                    type: integer
+                subject:
+                    description: |-
+                        reference to the aspect of the service. Acts like a title describing what 
+                        portion of the service can be improved later. We plan to make it a enum later.
+                    type: string
+                issue:
+                    description: Explain the issue lenghtly here
+                    type: string
+                attachment:
+                    description: URLs of photos that describe the claim graphically.
+                    type: array
+                    items:
+                        type: string
+                other:
+                    type: string
+            example:
+                claim_id: 6464
+                diner_id: 31313
+                reservation_id: 94313
+                subject: ''
+                issue: ''
+                attachment:
+                    - ''
+                other: ''
+        login_response_data:
+            title: Root Type for login_response_data
+            description: ''
+            type: object
+            properties:
+                user_id:
+                    format: uuid
+                    type: integer
+                first_name:
+                    type: string
+                email:
+                    format: email
+                    type: string
+                avatar:
+                    format: url
+                    type: string
+                nickname:
+                    type: string
+                token:
+                    type: string
+                expires:
+                    type: string
+            example:
+                user_id: 64631
+                first_name: ''
+                email: ''
+                avatar: ''
+                nickname: ''
+                token: ''
+                expires: ''
+        upload_response:
+            title: Root Type for upload_response
+            description: ''
+            type: object
+            properties:
+                success:
+                    type: boolean
+                msg:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            imageName:
+                                type: string
+                            cloudImage:
+                                format: url
+                                type: string
+                            imageId:
+                                type: string
+            example:
+                success: true
+                msg: You have successfully uploaded the image
+                data:
+                    -
+                        image_name: ''
+                        url: ''
+                        image_id: ''
+        user_response:
+            title: Root Type for user_response
+            description: ''
+            required:
+                - email
+            type: object
+            properties:
+                user_id:
+                    format: uuid
+                    type: string
+                role_id:
+                    format: uuid
+                    type: string
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                email:
+                    format: email
+                    type: string
+                phone_number:
+                    type: string
+                nickname:
+                    type: string
+                avatar:
+                    format: url
+                    type: string
+                is_diner_locked:
+                    type: boolean
+                is_cook_locked:
+                    type: boolean
+                ssn:
+                    type: string
+                certification_photo:
+                    format: url
+                    type: string
+                instagram:
+                    format: url
+                    type: string
+                bio:
+                    type: string
+                video:
+                    format: url
+                    type: string
+                monday:
+                    type: string
+                tuesday:
+                    type: string
+                wednesday:
+                    type: string
+                thursday:
+                    type: string
+                friday:
+                    type: string
+                saturday:
+                    type: string
+                sunday:
+                    type: string
+                work_holidays:
+                    type: boolean
+                push:
+                    type: boolean
+                email_notification:
+                    type: boolean
+                sms_notification:
+                    type: boolean
+                updates_notification:
+                    type: boolean
+                promotionals_notification:
+                    type: boolean
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+                other:
+                    type: string
+            example:
+                user_id: ''
+                first_name: ''
+                last_name: ''
+                email: ''
+                phone_number: ''
+                nickname: ''
+                avatar: ''
+                is_diner_locked: true
+                is_cook_locked: true
+                ssn: ''
+                certification_photo: ''
+                instagram: ''
+                bio: ''
+                video: ''
+                monday: ''
+                tuesday: ''
+                wednesday: ''
+                thursday: ''
+                friday: ''
+                saturday: ''
+                sunday: ''
+                work_holidays: false
+                push: true
+                email_notification: true
+                sms_notification: true
+                updates_notification: true
+                promotionals_notification: true
+                created_at: ''
+                updated_at: ''
+                other: ''
+        staff_response:
+            title: Root Type for staff
+            description: ''
+            type: object
+            properties:
+                staff_id:
+                    format: uuid
+                    type: integer
+                email:
+                    format: email
+                    type: string
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                phone_number:
+                    type: string
+                avatar:
+                    format: url
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+                other:
+                    type: string
+            example:
+                staff_id: 61646
+                email: ''
+                password: ''
+                first_name: ''
+                last_name: ''
+                phone_number: ''
+                avatar: ''
+                created_at: ''
+                updated_at: ''
+                other: ''
+        review_response:
+            title: Root Type for review_response
+            description: ''
+            type: object
+            properties:
+                review_id:
+                    format: uuid
+                    type: integer
+                user_id:
+                    format: uuid
+                    type: integer
+                reservation_id:
+                    format: uuid
+                    type: integer
+                food:
+                    type: string
+                service:
+                    type: string
+                presentation:
+                    type: string
+                overall_experience:
+                    type: string
+                comment:
+                    type: string
+                attachment:
+                    type: array
+                    items:
+                        type: string
+                service_went_fully:
+                    type: boolean
+                review_text:
+                    type: string
+                disabled:
+                    type: boolean
+                reasons:
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+                other:
+                    type: string
+            example:
+                review_id: 6431
+                user_id: 64313
+                reservation_id: 6431
+                food: '1'
+                service: '1'
+                presentation: '1'
+                overall_experience: '1'
+                comment: ''
+                attachment:
+                    - ''
+                service_went_fully: true
+                review_text: ''
+                disabled: false
+                reasons: ''
+                created_at: ''
+                updated_at: ''
+                other: ''
+        reservation_response:
+            title: Root Type for reservation_response
+            description: ''
+            type: object
+            properties:
+                reservation_id:
+                    format: uuid
+                    type: integer
+                diner_id:
+                    format: uuid
+                    type: integer
+                cook_id:
+                    format: uuid
+                    type: integer
+                guests:
+                    type: array
+                    items:
+                        type: string
+                dishes:
+                    type: array
+                    items:
+                        format: uuid
+                        type: integer
+                client_order:
+                    type: string
+                cook_comment:
+                    type: string
+                priority:
+                    type: integer
+                comment:
+                    type: string
+                place:
+                    type: string
+                when:
+                    type: string
+                status:
+                    enum:
+                        - PROPOSED
+                        - APPROVED
+                        - DECLINED
+                        - ONGOING
+                        - CANCELLED
+                        - PENDING
+                        - COOK
+                        - READY
+                        - MODIFIED
+                        - CLOSED
+                    type: string
+                staff_id:
+                    format: uuid
+                    type: integer
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+            example:
+                reservation_id: 635416
+                diner_id: 96461
+                cook_id: 31313
+                guests:
+                    - ''
+                dishes:
+                    - 14313
+                client_order: ''
+                cook_comment: ''
+                priority: 3
+                comment: ''
+                place: ''
+                when: ''
+                status: PROPOSED
+                staff_id: 6611
+                created_at: ''
+                updated_at: ''
+        payment_response:
+            title: Root Type for payment_response
+            description: ''
+            type: object
+            properties:
+                payment_id:
+                    format: uuid
+                    type: integer
+                receiver:
+                    format: uuid
+                    type: integer
+                buyer:
+                    format: uuid
+                    type: integer
+                comment:
+                    type: string
+                concept:
+                    type: string
+                register:
+                    format: uuid
+                    type: integer
+                pay_method:
+                    enum:
+                        - CASH
+                        - CARD
+                        - BANK
+                        - APPLE_PAY
+                        - GOOGLE_PAY
+                        - OTHER
+                    type: string
+                pay_status:
+                    enum:
+                        - ISSUED
+                        - PROCESSING
+                        - PROCESSED
+                        - REVISION
+                        - CANCELLED
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+                other:
+                    type: string
+            example:
+                payment_id: 641613
+                receiver: 463134
+                buyer: 131351
+                comment: ''
+                concept: ''
+                register: 31313
+                pay_method: CASH
+                pay_status: REVISION
+                other: ''
+        dish_response:
+            title: Root Type for dish_response
+            description: ''
+            type: object
+            properties:
+                dish_id:
+                    type: integer
+                cook_id:
+                    type: integer
+                title:
+                    type: string
+                description:
+                    type: string
+                style:
+                    type: string
+                glutten_allergy:
+                    type: boolean
+                soy_allergy:
+                    type: boolean
+                milk_allergy:
+                    type: boolean
+                peanuts_allergy:
+                    type: boolean
+                shrimp_allergy:
+                    type: boolean
+                other_allergy:
+                    type: string
+                attachment:
+                    type: array
+                    items:
+                        format: url
+                        type: string
+                minimun_diners:
+                    type: integer
+                maximum_diners:
+                    type: integer
+                price:
+                    type: integer
+                minimum_cancel_time:
+                    type: string
+                required_tools:
+                    type: string
+                disabled:
+                    type: boolean
+                reasons:
+                    type: string
+                review:
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+                other:
+                    type: string
+            example:
+                dish_id: 646341
+                cook_id: 6113
+                title: ''
+                description: ''
+                style: ''
+                glutten_allergy: false
+                soy_allergy: false
+                milk_allergy: false
+                peanuts_allergy: false
+                shrimp_allergy: false
+                other_allergy: ''
+                attachment:
+                    - ''
+                minimun_diners: 1
+                maximum_diners: 2
+                price: 10000
+                minimum_cancel_time: ''
+                required_tools: ''
+                disabled: false
+                reasons: ''
+                review: '2'
+                created_at: ''
+                updated_at: ''
+                other: ''
+        diner_response:
+            title: Root Type for diner_response
+            description: ''
+            type: object
+            properties:
+                user_id:
+                    type: integer
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                email:
+                    type: string
+                phone_number:
+                    type: string
+                is_diner_locked:
+                    description: |-
+                        If it is locked, try to send the verification code in your email. 
+                        If you didn't recieved it, contact Support.
+                    type: boolean
+                nickname:
+                    type: string
+                avatar:
+                    type: string
+                push:
+                    type: boolean
+                email_notification:
+                    type: boolean
+                sms_notification:
+                    type: boolean
+                updates_notification:
+                    type: boolean
+                promotionals_notification:
+                    type: boolean
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+            example:
+                user_id: 65131
+                first_name: ''
+                last_name: ''
+                email: ''
+                phone_number: ''
+                is_diner_locked: true
+                nickname: ''
+                avatar: ''
+                push: true
+                email_notification: true
+                sms_notification: true
+                updates_notification: true
+                promotionals_notification: true
+                created_at: ''
+                updated_at: ''
+        cook_response:
+            title: Root Type for cook_response
+            description: ''
+            type: object
+            properties:
+                user_id:
+                    format: uuid
+                    type: integer
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                email:
+                    format: email
+                    type: string
+                phone_number:
+                    type: string
+                is_cook_locked:
+                    description: If is locked you need to call support.
+                    type: boolean
+                instagram:
+                    format: url
+                    type: string
+                bio:
+                    type: string
+                video:
+                    format: url
+                    type: string
+                monday:
+                    type: string
+                tuesday:
+                    type: string
+                wednesday:
+                    type: string
+                thursday:
+                    type: string
+                friday:
+                    type: string
+                saturday:
+                    type: string
+                sunday:
+                    type: string
+                work_holidays:
+                    type: boolean
+                nickname:
+                    type: string
+                avatar:
+                    format: url
+                    type: string
+                push:
+                    type: boolean
+                email_notification:
+                    type: boolean
+                sms_notification:
+                    type: boolean
+                updates_notification:
+                    type: boolean
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+                certification_photo:
+                    format: url
+                    type: string
+            example:
+                user_id: 6131
+                first_name: ''
+                last_name: ''
+                email: ''
+                phone_number: ''
+                is_cook_locked: true
+                certification_photo: ''
+                instagram: ''
+                bio: ''
+                video: ''
+                monday: ''
+                tuesday: ''
+                wednesday: ''
+                thursday: ''
+                friday: ''
+                saturday: ''
+                sunday: ''
+                work_holidays: false
+                nickname: ''
+                avatar: ''
+                push: true
+                email_notification: true
+                sms_notification: true
+                updates_notification: true
+                created_at: ''
+                updated_at: ''
+        claim_response:
+            title: Root Type for claim_response
+            description: ''
+            type: object
+            properties:
+                claim_id:
+                    format: uuid
+                    type: integer
+                diner_id:
+                    format: uuid
+                    type: integer
+                reservation_id:
+                    format: uuid
+                    type: integer
+                subject:
+                    type: string
+                issue:
+                    type: string
+                attachment:
+                    description: URLs of photos that describe the claim graphically
+                    type: array
+                    items:
+                        type: string
+                status:
+                    description: |-
+                        PENDING recently raised claim not addresed by staff or Admin.
+                        OPEN addresed claim
+                        CLOSED solved claim
+                    enum:
+                        - PENDING
+                        - OPEN
+                        - CLOSED
+                    type: string
+                claim_chat_id:
+                    format: uuid
+                    type: integer
+                created_at:
+                    format: datetime
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+                other:
+                    type: string
+            example:
+                claim_id: 6464
+                diner_id: 31313
+                reservation_id: 94313
+                subject: ''
+                issue: ''
+                attachment:
+                    - ''
+                status: PENDING
+                claim_chat_id: 6431
+                created_at: ''
+                updated_at: ''
+                other: ''
+        claim_chat_response:
+            title: Root Type for claim_chat_response
+            description: ''
+            type: object
+            properties:
+                claim_chat_id:
+                    format: uuid
+                    type: integer
+                diner_id:
+                    format: uuid
+                    type: integer
+                cook_id:
+                    format: uuid
+                    type: integer
+                reservation_id:
+                    format: uuid
+                    type: integer
+                moderator:
+                    format: uuid
+                    description: |-
+                        Staff member asigned to moderate this chat. She/He must watch for proper 
+                        and civilized comunication between cook and diners.
+                    type: integer
+                messages:
+                    type: array
+                    items:
+                        type: string
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+            example:
+                claim_chat_id: 946313
+                diner_id: 684161
+                cook_id: 7641
+                reservation_id: 6416
+                moderator: 6131
+                messages:
+                    - ''
+                created_at: ''
+                updated_at: ''
+        admin_response:
+            title: Root Type for admin
+            description: ''
+            type: object
+            properties:
+                email:
+                    format: email
+                    type: string
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                phone_number:
+                    format: phone_number
+                    type: string
+                avatar:
+                    format: url
+                    description: URL with path to avatar image
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                updated_at:
+                    format: date-time
+                    type: string
+                other:
+                    type: string
+                admin_id:
+                    format: uuid
+                    type: integer
+            example:
+                admin_id: 5464
+                email: ''
+                first_name: ''
+                last_name: ''
+                phone_number: ''
+                avatar: ''
+                created_at: ''
+                updated_at: ''
+                other: ''
+        cook_verify_request:
+            title: Root Type for cook_verify_request
+            description: ''
+            type: object
+            properties:
+                email:
+                    type: string
+            example:
+                email: ''
+        admin_cook_request:
+            title: Root Type for admin_cook_request
+            description: ''
+            required:
+                - email
+            type: object
+            properties:
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                email:
+                    type: string
+                password:
+                    type: string
+                phone_number:
+                    type: string
+                is_cook_locked:
+                    type: boolean
+                certification_photo:
+                    type: string
+                instagram:
+                    type: string
+                bio:
+                    type: string
+                video:
+                    type: string
+                monday:
+                    type: string
+                tuesday:
+                    type: string
+                wednesday:
+                    type: string
+                thursday:
+                    type: string
+                friday:
+                    type: string
+                saturday:
+                    type: string
+                sunday:
+                    type: string
+                work_holidays:
+                    type: boolean
+                nickname:
+                    type: string
+                avatar:
+                    type: string
+                push:
+                    type: boolean
+                email_notification:
+                    type: boolean
+                sms_notification:
+                    type: boolean
+                updates_notification:
+                    type: boolean
+            example:
+                first_name: ''
+                last_name: ''
+                email: ''
+                phone_number: ''
+                is_cook_locked: true
+                certification_photo: ''
+                instagram: ''
+                bio: ''
+                video: ''
+                monday: ''
+                tuesday: ''
+                wednesday: ''
+                thursday: ''
+                friday: ''
+                saturday: ''
+                sunday: ''
+                work_holidays: false
+                nickname: ''
+                avatar: ''
+                push: true
+                email_notification: true
+                sms_notification: true
+                updates_notification: true
+        admin_diner_request:
+            title: Root Type for admin_diner_request
+            description: ''
+            required:
+                - email
+            type: object
+            properties:
+                first_name:
+                    type: string
+                last_name:
+                    type: string
+                email:
+                    type: string
+                password:
+                    type: string
+                phone_number:
+                    type: string
+                is_diner_locked:
+                    type: boolean
+                nickname:
+                    type: string
+                avatar:
+                    type: string
+                push:
+                    type: boolean
+                email_notification:
+                    type: boolean
+                sms_notification:
+                    type: boolean
+                updates_notification:
+                    type: boolean
+                promotionals_notification:
+                    type: boolean
+            example:
+                first_name: ''
+                last_name: ''
+                email: ''
+                password: ''
+                phone_number: ''
+                is_diner_locked: false
+                nickname: ''
+                avatar: ''
+                push: true
+                email_notification: true
+                sms_notification: true
+                updates_notification: true
+                promotionals_notification: true
+    responses:
+        admin_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/admin_success'
+            description: ''
+        claim_chat_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/claim_chat_success'
+            description: ''
+        claim_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/claim_success'
+            description: ''
+        dish_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/dish_success'
+            description: ''
+        payment_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/payment_success'
+            description: ''
+        reservation_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/reservation_success'
+            description: ''
+        review_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/review_success'
+            description: ''
+        staff_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/staff_success'
+            description: ''
+        user_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/user_success'
+            description: ''
+        user_error:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/client_failed'
+            description: ''
+        server_error:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/server_failed'
+            description: ''
+        cook_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/cook_success'
+                    examples:
+                        Successful:
+                            value:
+                                success: true
+                                msg: Operation Succeded
+                                data:
+                                    -
+                                        user_id: 6131
+                                        first_name: ''
+                                        last_name: ''
+                                        email: ''
+                                        phone_number: ''
+                                        is_cook_locked: true
+                                        certification_photo: ''
+                                        instagram: ''
+                                        bio: ''
+                                        video: ''
+                                        monday: ''
+                                        tuesday: ''
+                                        wednesday: ''
+                                        thursday: ''
+                                        friday: ''
+                                        saturday: ''
+                                        sunday: ''
+                                        work_holidays: false
+                                        nickname: ''
+                                        avatar: ''
+                                        push: true
+                                        email_notification: true
+                                        sms_notification: true
+                                        updates_notification: true
+                                        created_at: ''
+                                        updated_at: ''
+            description: ''
+        diner_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/cook_success'
+                    examples:
+                        Successful:
+                            value:
+                                success: true
+                                msg: Operation Succeded
+                                data:
+                                    -
+                                        user_id: 65131
+                                        first_name: ''
+                                        last_name: ''
+                                        email: ''
+                                        phone_number: ''
+                                        is_diner_locked: false
+                                        nickname: ''
+                                        avatar: ''
+                                        push: true
+                                        email_notification: true
+                                        sms_notification: true
+                                        updates_notification: true
+                                        promotionals_notification: true
+                                        created_at: ''
+                                        updated_at: ''
+            description: ''
+        login_success:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/login_response'
+                    examples:
+                        Successful:
+                            value:
+                                success: true
+                                msg: You have successfully Log In to CookinAt!
+                                data:
+                                    -
+                                        user_id: 64631
+                                        first_name: ''
+                                        email: ''
+                                        avatar: ''
+                                        nickname: ''
+                                        token: ''
+                                        expires: ''
+            description: ''
+        ping_response:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ping_response'
+                    examples:
+                        Successful:
+                            value:
+                                success: true
+                                msg: A savage Server is challenge you to a fight!
+                                data:
+                                    -
+                                        name: cookinat-user-backend
+                                        description: RESTful API with Authentication and documentation
+                                        version: 2.0.1
+                                        uptime: 48715.379753035
+            description: ''
+        upload_response:
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/upload_response'
+                    examples:
+                        Successful:
+                            value:
+                                success: true
+                                msg: You have successfully uploaded the image
+                                data:
+                                    -
+                                        image_name: ''
+                                        url: ''
+                                        image_id: ''
+            description: ''
+    securitySchemes:
+        cookinat-api-key:
+            type: apiKey
+            name: cookinat-api-key
+            in: header
+        cookinat-admin-credentials:
+            scheme: basic
+            type: http
+tags:
+    -
+        name: Auth
+        description: >-
+            ### Proposed User SignUp-LogIn-ChooseRole Flow 
+
+            1. User enter the _SignUp View_ and send `name`, `email`, `role` and `password` to Backend 
+            
+            2. Backend send back  `userId` (for support and `/auth/login/forgot`),  `name` (for UI) and  `email`
+            (for UI and `/auth/signup/verification`). 
+            
+            3. Also Backend send a `verificationCode` to user's
+            email. User can request re-send [here]() 
+            
+            4. User enter the _Verification View_ and enter
+            `verificationCode`.  The App must **automatically include email**, and send 
+            
+            5. Backend answers. 
+            If no match, _SignUp Error View_, if match _SignUp Ok View_ 
+            
+            6. User go to _LogIn View_ and enter
+            `email` and `password` 
+            
+            7. If all ok, user can go to _Home View_. If no match User can go to _Login
+            Password Forgot View_. 
+            
+            8. If User in _Login Password Forgot View_, then send in petition `email` ,
+            a  `One Time Password (OTP)` is generated and sent to email given 
+            
+            9. User can enter _LogIn View_ 
+            and enter `OTP` as password to enter and set new `password` in settings, OR 
+            
+            10. User enter in
+            _LogIn View_ and enter normally. 
+            
+            11. Then after _Login View_ user must enter _Home View_ 
+            
+            12. ...
+
+            13. Profit!
+            
+
+            ### Now let's see which endpoints are used in each step: 
+
+            1. [POST /auth/signup](#/Auth/postAuthSignupDiner) (Diner) | [POST /auth/signup/cook](#/Auth/postAuthSignupCook) (Cook)
+
+            2. Backend response to User 
+            
+            3. Backend internal operation 
+            
+            4. [POST /auth/signup/verification](#/Auth/postAuthSignupVerification) 
+            
+            5. Backend response 
+            
+            6. [POST /auth/login](#/Auth/postAuthLogin) 
+            
+            7. Backend response 
+            
+            8. [GET /auth/login/forgot](#/Auth/getAuthLoginForgot) 
+            
+            9. [POST /auth/login](#/Auth/postAuthLogin) 
+            
+            10. [POST /auth/login](#/Auth/postAuthLogin)
+    -
+        name: Claim
+        description: >-
+            # Issue a claim  
+
+            [POST /admin/claim]() 
+
+            A Diner can Issue a claim on a reservation until 24 hrs after completed, as long as a claim has
+            not been already issued.
+
+            When a Diner is not happy with a service, they are prompted to issue a claim.
+
+            * Service (automatically select the service) * Subject (select from a list or enter manually) *
+            Issue (up to 4000 chars to explain the issue) * Attachments (attach pictures)
+
+            ## Claim Follow Up
+
+            From the list of reservations, the user  Message system between cookin at support and the
+            customer.
+
+            Whenever any party emits a respond upon a claim, the other party would receive a notification.
+            They must be able to share messages and attachments.
+    -
+        name: Cook
+        description: >-
+            ## Sign Up   
+
+            [POST /auth/signup/cook](#/Auth/postAuthSignupCook) 
+
+            Cook can sign-up by filling an initial form in Sign Up endpoint.
+
+            Once the cook signs up, they can only be listed in the system prior approval (police report and
+            food manager certification approval).
+
+            ## Complete Profile  
+
+            Once a cook has been approved, they can complete their profile.
+
+            ## Biography (max 1200 characteres)  
+
+            Cooks must include a description of themselves. The platform must encourage cooks to follow a
+            provided guideline.
+
+            ## Cooking schedule  
+
+            Cooks can check in a week calendar, which dates they are available for work (mon, tue, wed, etc)
+
+            Per day, they must be able to select a range of hours of operation.
+
+            They can also mark certain dates (or range of dates) as unavailable.
+
+            ## Introduction Video 
+
+            Cooks will be able to provide a video of themselves they previously uploaded either on YouTube or
+            Vimeo.
+
+            ## Approve Service
+
+            Once a Cook have checked the details of a reservation, they could approve it. Once approved, the
+            payment goes fully through.
+
+            ## Decline Service
+
+            Once a Cook have checked the details of a reservation, they could decline it and add a reason.
+            Once declined, the payment must be refunded (cleared).
+
+            ## Cancel Reservation
+
+            Only the Diner who placed the reservation can cancel a reservation.
+
+            Diners can cancel a service 48 hours prior the service without charge.
+
+            Diners can cancel a service from 48 to 24 hours prior the service, with a 30% charge
+
+            A service canceled less than 24 hrs from its schedule, won't be refunded
+
+            A Diner can cancel a reservation unless it's either already canceled or finished.
+
+            Diners can cancel reservations automatically from the app
+
+            Diners and cooks must be notified when a service is canceled
+    -
+        name: Diner
+        description: |-
+            ## Find Cook
+
+            Users do not require to sign-in in order to use the 'find a cook' service.
+            In order to find a cook, the user must (* = required):
+
+            *  Select the place where the event is gonna be *
+
+            *  Date and time when the event is taking place
+
+            *  Food style
+
+            *  Number of diners
+
+            *  Price range
+
+            *  Reviews 
+
+            *  Allergies
+    -
+        name: Dish
+        description: |-
+            API to manage Dish creation and listing for CookinAt App. 
+
+            ## Register Dish  
+
+            Cooks can add as many dishes they want, by providing:
+
+            * Title 
+
+            * Description 
+
+            * Style (coming from a DB of different styles, such as Thai, Italian, Mediterranean) 
+
+            * Allergies (mark)
+              + Gluten
+              + Soy
+              + Milk
+              + Peanuts
+              + Shrimps, (they can manually input others)
+              
+            * Pictures (up to 6) 
+
+            * Minimum diners (number of minimum diners) 
+
+            * Maximum diners (number of maximum diners)
+
+            * Price per diner 
+
+            * Minimum cancellation notice (12, 24, 48 hrs) 
+
+            * Required
+              + Oven
+              + BBQ
+              + Gas stoves
+              + Electric stove
+              + Microwave
+              + Others (manual input)
+
+            ## Disable Dish  
+
+            The Cook must be able to mark dishes as unavailable.
+    -
+        name: Payment
+        description: >-
+            ## Purchase Service 
+
+            * Select the place where the event is gonna be *
+
+            * Date when the event is taking place
+
+            * Number of diners
+
+            * Cook & Menu
+
+            * Payment Method
+
+            * Customer will be charged (and reflected) with an extra 3% for transaction fees
+
+            * The system validates that the cook is not busy the day of the event
+
+            * The system validates that there is enough time to prepare the dish prior the event 
+
+            ## Purchase History 
+
+            Show current (upcoming) reservations History of previous year purchases sort by most recent Show
+            status Search by keywords
+
+            # Add Tip
+
+            Once a service is finished, the Diner is notified inviting them to leave a tip for the service.
+
+            ## Register Payment Destination
+
+            The cook must be able to register either their Credit Card, PayPal, or Bank Account.
+
+            Select Credit Card, PayPal or Bank Account Enter details
+
+            ## Transfer Money To Bank
+
+            The cook must be able to transfer their credit to payment destination.
+
+            They must have credit in their balance They must be charged with whatever transaction fee from the
+            API The money must go to the account
+
+            ## Refund
+
+            Refunds should automatically be applied in cases of cancellation by the Cook
+    -
+        name: Reservation
+        description: >-
+            # Diner
+
+            ## Find Cook
+
+            Users do not require to sign-in in order to use the 'find a cook' service.
+
+            In order to find a cook, the user must (* = required):
+
+            * Select the place where the event is gonna be *
+
+            * Date and time when the event is taking place
+
+            * Food style
+
+            * Number of diners
+
+            * Price range
+
+            * Reviews
+
+            * Allergies
+
+            ## Purchase Service 
+
+            * Select the place where the event is gonna be *
+
+            * Date when the event is taking place
+
+            * Number of diners
+
+            * Cook & Menu
+
+            * Payment Method
+
+            * Customer will be charged (and reflected) with an extra 3% for transaction fees
+
+            * The system validates that the cook is not busy the day of the event
+
+            * The system validates that there is enough time to prepare the dish prior the event 
+
+            Invite Guests by email or SN
+
+            Once a Diner purchases a service, they are prompted to invite their guests via email or social
+            networks.
+
+            Their guests will receive an email or SMS with information of the Application.
+
+            Once a guest signs-up in the app, they must be able to see reservations they were invited to.
+
+            ## Reservations
+
+            * Displays future reservations
+
+            * Display Reservation Details
+
+            * Option to contact diner
+
+            * Option to cancel reservation
+
+            * Diners can issue a claim on reservations until 24 hrs after they have finished.
+
+            # Cook
+
+            ## Managing Reservations
+
+            Cooks can access a list of detailed information about pending reservations, where they can access:
+
+            * Reservation Details
+
+            * Approve a reservation
+
+            * Decline a reservation
+
+            * Contact Diner
+
+            ## Reservation Details
+
+            Cook must access extended details of their reservations, except for the contact information of the
+            Diner.
+
+            ## Approve Service
+
+            Once a Cook have checked the details of a reservation, they could approve it. Once approved, the
+            payment goes fully through.
+
+            ## Decline Service
+
+            Once a Cook have checked the details of a reservation, they could decline it and add a reason.
+            Once declined, the payment must be refunded (cleared).
+
+            Reason of service decline
+
+            ## Cancel Service
+
+            Once a Cook have approved a reservation, they could cancel it and add a reason. Once cancelled,
+            the payment must be refunded to the Diner.
+
+            A cook can cancel a reservation anytime (as long as it have not gone through or has been
+            previously canceled by the diner)
+
+            Reason of service cancellation
+
+            A cook must be able to contact the diner in a pending reservation in order to discuss further
+            details prior accepting or declining the transaction.
+
+            When a reservation is cancelled, the diner must be notified.
+
+            When a reservation is cancelled, the cook must be punished.
+
+            ## Contact Cook
+
+            Diners can only contact cook regarding an active reservation
+
+            When a reservation is placed, a communication channel is established between diner and cook.
+    -
+        name: Review
+        description: >-
+            A Diner will be able to review a Cook by service.
+
+            If the Diner is reviewing a service that was canceled by the Cook,
+
+            * If the service went through star from 1 to 5 for food, service, presentation.
+
+            * Select stars form 1 to 5 for: overall experience.
+
+            * Images or videos (up to 8)
+
+            * Comment (up to 600 chars) (required when star is 1 or 2)
+
+            * Confirm service went fully through
+
+            * Confirm service satisfaction
+
+            * Leave a claim
+
+            * Leave a tip
+
+            * Leave a review
+
+            ### Confirm service went fully through
+
+            Once a reservation is finished, the Diner must be prompted to confirm  whether the service went
+            fully through or not.
+
+            ## Confirm service satisfaction
+
+            When a reservation goes fully through, Diner is asked whether is happy  or not with the service.

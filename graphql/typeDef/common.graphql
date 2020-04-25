@@ -1,0 +1,44 @@
+enum Role {
+  COOK
+  DINER
+  ADMIN
+}
+
+type response {
+  success: Boolean
+  msg: String
+  data: [ReturnUser]
+  errors: [Error]
+}
+
+type loginResponse {
+  success: Boolean
+  msg: String
+  data: [LoginUser]
+  errors: [Error]
+}
+
+type LoginUser {
+  token: String
+  token_expires: String
+  user: String
+}
+
+type ReturnUser {
+  first_name: String!
+  last_name: String
+  email: String!
+  phone_number: String
+  verificationCode: String
+}
+
+type Error {
+  msg: String
+  trace: String
+  url: String
+  description: String
+}
+
+type Query {
+  hello: String
+}

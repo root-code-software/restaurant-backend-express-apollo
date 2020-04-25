@@ -1,0 +1,198 @@
+mutation loginDiner($email: String!, $password: String!){
+  loginDiner(input: {email: $email, password: $password}){
+    success
+    msg
+    data{
+      token
+      token_expires
+      user
+    }
+    errors{
+      msg
+      trace
+      url
+      description
+    }
+  }
+}
+
+mutation loginCook($email: String!, $password: String!){
+  loginDiner(input: {email: $email, password: $password}){
+    success
+    msg
+    data{
+      token
+      token_expires
+      user
+    }
+    errors{
+      msg
+      trace
+      url
+      description
+    }
+  }
+}
+
+{
+  "email": "developer.sozo@gmail.com",
+  "password": "5236987410."
+}
+
+
+mutation {
+  verify_signup_diner(input:{
+    verification_code: "656477646d6e7164732f726e7b6e41666c60686d2f626e6c2d312f3238303133323832323930363530383632"
+    email: "developer.sozo@gmail.com"
+  }){
+    success
+    msg
+    errors{
+      msg
+      trace
+    }
+  }
+}
+
+mutation {
+  resend_verification(input:{
+    email: "developer.sozo@gmail.com"
+  }){
+    success
+    msg
+    errors{
+      msg
+      trace
+    }
+  }
+}
+
+mutation signupDiner(
+  $email: String
+  $password: String
+  $first_name: String
+  $last_name: String
+  $nickname: String
+  $avatar: String
+  $phone_number: String
+) {
+  signupDiner(
+    input: {
+      first_name: $first_name
+      last_name: $last_name
+      nickname: $nickname
+      avatar: $avatar
+      phone_number: $phone_number
+      email: $email
+      password: $password
+    }
+  ) {
+    success
+    msg
+    data {
+      first_name
+      last_name
+      email
+      phone_number
+    }
+    errors {
+      msg
+      trace
+      url
+      description
+    }
+  }
+}
+
+{
+  "email": "syd.sozo@gmail.com",
+  "password": "5236987410.",
+  "first_name": "Syd",
+  "last_name": "Sozo",
+  "nickname": "Diner",
+  "avatar": "",
+  "phone_number": ""
+}
+
+mutation signupCook(
+  $email: String
+  $password: String
+  $first_name: String
+  $last_name: String
+  $nickname: String
+  $avatar: String
+  $phone_number: String
+  $mother_maiden_name: String
+  $dob: String
+  $ssn: String
+) {
+  signupCook(
+    input: {
+      first_name: $first_name
+      last_name: $last_name
+      nickname: $nickname
+      avatar: $avatar
+      phone_number: $phone_number
+      email: $email
+      password: $password
+      mother_maiden_name: $mother_maiden_name
+      dob: $dob
+      ssn: $ssn
+    }
+  ) {
+    success
+    msg
+    data {
+      first_name
+      last_name
+      email
+      phone_number
+    }
+    errors {
+      msg
+      trace
+      url
+      description
+    }
+  }
+}
+
+{
+  "email": "syd.sozo@gmail.com",
+  "password": "5236987410.",
+  "first_name": "Syd",
+  "last_name": "Sozo",
+  "nickname": "Diner",
+  "avatar": "",
+  "phone_number": "",
+  "mother_maiden_name": "",
+  "dob": "",
+  "ssn": "1111-11-2001"
+}
+
+mutation passwordChange{
+  change_password(input:{email: "developer.sozo@gmail.com", password: "5236987410."}){
+    success
+    msg
+    errors{
+      msg
+    }
+    data{
+      email
+    }
+  }
+}
+
+mutation passwordReset{
+  reset_password(input:{
+    email: "developer.sozo@gmail.com"
+  }){
+    success
+    data{
+      email
+    }
+    errors{
+      msg
+    }
+  }
+}

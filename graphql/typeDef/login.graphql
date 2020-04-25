@@ -1,0 +1,13 @@
+input LoginInput {
+    email: String!
+    password: String!
+}
+
+type Mutation {
+    loginDiner(input: LoginInput): loginResponse
+    loginCook(input: LoginInput): loginResponse
+    loginDinerFB(input: LoginInput): loginResponse
+    loginDinerGoogle(input: LoginInput): loginResponse
+    loginChefFB(input: LoginInput): loginResponse
+    loginChefGoogle(input: LoginInput): loginResponse
+}

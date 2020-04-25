@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Cloudinary example</title>
+    <style>
+      main {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 1200px;
+      }
+
+      .widget {
+        width: 40%;
+      }
+
+      .file {
+        width: 40%;
+      }
+    </style>
+  </head>
+  <body>
+    <header><p>Before selecting the file open chrome console > network tab to see the request details.</p></header>
+    <main>
+      <div class="widget">
+        <h2>Using Cloudinary Upload Widget</h2>
+        <button id="upload_widget_opener">Upload images</button>
+
+        <ul>
+          Pros:
+          <li>Easy to set up</li>
+          <li>Good UX</li>
+          <li>You choose the file easily</li>
+        </ul>
+        <ul>
+          Cons:
+          <li>I don't know if the one making the app can use this code</li>
+          <li>You can't control nor the name or the folder</li>
+        </ul>
+      </div>
+
+      <div class="file">
+        <h2>Using native file upload API</h2>
+        <form action="upload" action="/" method="post" enctype="multipart/form-data">
+            <input type="file" name="image" />
+            <button type="submit" name="upload">Upload</button>
+        </form>
+        <ul>
+          Pros:
+          <li>Can control the name, folder and validate server side</li>
+          <li>As is a proven method there must be info on this for react Native</li>
+        </ul>
+        <ul>
+          Cons:
+          <li>I don't know if the one making the app can use this code</li>
+          <li>Requieres more changes on the Server</li>
+        </ul>
+      </div>
+    </main>
+
+    <!--Step 1: Replace the script URL-->
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+      var myUploadWidget;
+      document.getElementById("upload_widget_opener").addEventListener(
+        "click",
+        function() {
+          myUploadWidget = cloudinary.openUploadWidget(
+            {
+              cloudName: "cookinat-inc",
+              uploadPreset: "v2ozetcw",
+              //Step 3:  Add list of sources that should be added as tabs in the widget.
+              sources: ["local", "url", "camera"],
+              //UI Customization
+              styles: {
+                palette: {
+                  window: "#10173a",
+                  sourceBg: "#20304b",
+                  windowBorder: "#9999ff",
+                  tabIcon: "#33ffcc",
+                  inactiveTabIcon: "#0e2f5a",
+                  menuIcons: "#ffccff",
+                  link: "#ff0066",
+                  action: "#33ffcc",
+                  inProgress: "#00ffcc",
+                  complete: "#33ff00",
+                  error: "#cc3333",
+                  textDark: "#000000",
+                  textLight: "#ffffff"
+                }
+              },
+              fonts: {
+                default: null,
+                "'Cute Font', cursive": "https://fonts.googleapis.com/css?family=Cute+Font",
+                "'Gamja Flower', cursive": "https://fonts.googleapis.com/css?family=Gamja+Flower|PT+Serif"
+              }
+            },
+            function(error, result) {
+              //Step 2.3:  Listen to 'success' event
+              if (result.event === "success") {
+                //Step 2.4:  Call the .close() method in order to close the widget
+                myUploadWidget.close();
+              }
+            }
+          );
+        },
+        false
+      );
+
+      //Step 2.2:  Call the .open() method in order to open the widget
+      myUploadWidget.open();
+    </script>
+    <script type="text/javascript">
+      async function SavePhoto(inp) {
+        let user = {
+          image_name: "test",
+          user_id: "dev_test"
+        };
+        let formData = new FormData();
+        let photo = inp.files[0];
+
+        formData.append("photo", photo);
+        formData.append("user", JSON.stringify(user));
+
+        try {
+          let r = await fetch("https://www.cookinat.com/upload", { method: "POST", body: user });
+          console.log("HTTP response code:", r.status, r);
+        } catch (e) {
+          console.log("Huston we have problem...:", e);
+        }
+      }
+    </script>
+  </body>
+</html>

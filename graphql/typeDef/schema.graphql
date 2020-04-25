@@ -1,0 +1,5 @@
+# import Query.*, * from "common.graphql"
+# import Mutation.*, * from "login.graphql"
+# import Mutation.*, * from "password.graphql"
+# import Mutation.*, * from "signup.graphql"
+# import Mutation.*, * from "verification.graphql"

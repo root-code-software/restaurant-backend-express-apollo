@@ -1,0 +1,12 @@
+* USE PLURAL IN RESURCES NAME? R:/ In version two make this change
+* Check if PATCH in postgREST works
+* Look for alternative to exist/findByEmail/findById in postgres !! R:/ http://www.postgresqltutorial.com/postgresql-exists/
+* Check if some resources needs to separate update and cretion INPUTS
+* check if toggles are needed R:/ No, use general PATCH
+* check if reservation must have created and updated fields
+* when creatin a user the email exists, try to update roles fields. Check this out!!
+* check if claim_chat can have an array of json as messages instead of other table
+* If later point works, what other table can be converted?
+* user/cook/diner/admin/staff find/searches  will be by email
+* GET ​/consumer​/review​/reservation​/{reservation_id}
+* GET /consumer/review/dish/{dish_id}

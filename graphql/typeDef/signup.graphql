@@ -1,0 +1,30 @@
+input SignupCook {
+  email: String
+  password: String
+  first_name: String
+  last_name: String
+  nickname: String
+  avatar: String
+  phone_number: String
+  middle_name: String
+  ssn: String
+  mother_maiden_name: String
+  dob: String
+  is_external: Boolean
+}
+
+input SignupDiner {
+  email: String
+  password: String
+  first_name: String
+  last_name: String
+  nickname: String
+  avatar: String
+  phone_number: String
+  is_external: Boolean
+}
+
+type Mutation {
+  signupCook(input: SignupCook): response
+  signupDiner(input: SignupDiner): response
+}

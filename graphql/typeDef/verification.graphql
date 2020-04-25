@@ -1,0 +1,13 @@
+input SignupVerification {
+    email: String
+    verification_code: String
+}
+
+input Email {
+    email: String
+}
+
+type Mutation {
+    resend_verification(input: Email): response
+    verify_signup_diner(input: SignupVerification): response
+}
